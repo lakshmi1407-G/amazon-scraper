@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Amazon Sentiment Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI';
+            margin: 0;
+            color: white;
+            background: linear-gradient(-45deg, #0f2027, #2c5364, #24243e, #302b63);
+            background-size: 400% 400%;
+            animation: gradientMove 10s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 65%;
+            margin: 50px auto;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        input {
+            padding: 10px;
+            width: 70%;
+            border-radius: 10px;
+            border: none;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 8px 18px;
+            background: #00c6ff;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+        img {
+            width: 200px;
+            border-radius: 10px;
+            margin: 10px;
+        }
+
+        .chart-box {
+            width: 260px;
+            margin: auto;
+        }
+
+        .review {
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        .positive { background: rgba(0,255,0,0.2); }
+        .negative { background: rgba(255,0,0,0.2); }
+        .neutral { background: rgba(255,165,0,0.2); }
+
+        .loader {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 5px solid rgba(255,255,255,0.2);
+            border-top: 5px solid #00c6ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin: auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🛒 Amazon Sentiment Analyzer</h1>
+
+{% if not data %}
+<form method="POST" onsubmit="showLoader()">
+    <input type="text" name="url" placeholder="Paste Amazon URL..." required>
+    <br><br>
+    <button type="submit">Analyze</button>
+</form>
+
+<div class="loader" id="loader">
+    <div class="spinner"></div>
+    <p>Analyzing... ⚡</p>
+</div>
+{% endif %}
+
+{% if data %}
+
+<hr>
+
+<h2>{{ data.product_name }}</h2>
+
+<img src="{{ data.image }}">
+
+<p>₹ {{ data.price }} | ⭐ {{ data.rating }}</p>
+
+<div class="chart-box">
+    <canvas id="chart"></canvas>
+</div>
+
+<script>
+const p = {{ data.summary.positive | default(0) }};
+const n = {{ data.summary.negative | default(0) }};
+const neu = {{ data.summary.neutral | default(0) }};
+
+new Chart(document.getElementById('chart'), {
+    type: 'pie',
+    data: {
+        labels: ['Positive', 'Negative', 'Neutral'],
+        datasets: [{
+            data: [p, n, neu],
+            backgroundColor: ['green', 'red', 'orange']
+        }]
+    }
+});
+</script>
+
+<h3>Reviews</h3>
+
+{% for r in data.reviews %}
+<div class="review {{ r.sentiment }}">
+    <b>{{ r.sentiment }}</b>: {{ r.review_text[:120] }}...
+</div>
+{% endfor %}
+
+<br>
+<a href="/"><button>Back</button></a>
+
+{% endif %}
+
+</div>
+
+<script>
+function showLoader(){
+    document.getElementById("loader").style.display="block";
+}
+</script>
+
+</body>
+</html>
