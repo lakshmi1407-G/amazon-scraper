@@ -52,6 +52,4 @@ Amazon website scraping should follow their terms and conditions.
 
 ---
 
-## 👨‍💻 Author
 
-Gops
